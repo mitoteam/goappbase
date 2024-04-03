@@ -1,2 +1,2 @@
-# go-appbase
+# goappbase
 Go projects application base
