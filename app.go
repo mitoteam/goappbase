@@ -3,6 +3,7 @@ package goappbase
 import (
 	"log"
 
+	"github.com/mitoteam/mttools"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,8 @@ type AppBase struct {
 	Commit  string //Git commit hash
 	Time    string //Build time
 
+	ServiceUnitData *mttools.ServiceData
+
 	rootCmd *cobra.Command
 }
 
@@ -36,6 +39,8 @@ func NewAppBase() *AppBase {
 
 	app.ExecutableName = "UNSET_ExecutableName"
 	app.AppName = "UNSET_AppName"
+
+	app.ServiceUnitData = &mttools.ServiceData{}
 
 	app.buildRootCmd()
 
@@ -62,7 +67,10 @@ func (app *AppBase) internalInit() {
 	}
 
 	//add built-in commands
-	app.rootCmd.AddCommand(app.buildVersionCmd())
+	app.rootCmd.AddCommand(
+		app.buildVersionCmd(),
+		app.buildInstallCmd(),
+	)
 }
 
 func (app *AppBase) GetRootCmd() *cobra.Command {

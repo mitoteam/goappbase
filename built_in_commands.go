@@ -2,7 +2,9 @@ package goappbase
 
 import (
 	"fmt"
+	"log"
 
+	"github.com/mitoteam/mttools"
 	"github.com/spf13/cobra"
 )
 
@@ -46,4 +48,33 @@ func (app *AppBase) buildVersionCmd() *cobra.Command {
 			fmt.Println(app.Version)
 		},
 	}
+}
+
+func (app *AppBase) buildInstallCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "install",
+		Short: "Creates system service to run " + app.AppName,
+
+		Run: func(cmd *cobra.Command, args []string) {
+			if mttools.IsSystemdAvailable() {
+				if err := app.ServiceUnitData.InstallSystemdService(); err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Fatalf(
+					"Directory %s does not exists. Only systemd based services supported for now.\n",
+					mttools.SystemdServiceDirPath,
+				)
+			}
+		},
+	}
+
+	cmd.PersistentFlags().BoolVar(
+		&app.ServiceUnitData.Autostart,
+		"autostart",
+		false,
+		"Set service to be auto started after boot. Please note this does not auto starts service after installation.",
+	)
+
+	return cmd
 }
