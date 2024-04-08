@@ -1,6 +1,7 @@
 package goappbase
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -99,6 +100,34 @@ func (app *AppBase) buildUninstallCmd() *cobra.Command {
 					mttools.SystemdServiceDirPath,
 				)
 			}
+		},
+	}
+
+	return cmd
+}
+
+func (app *AppBase) buildInitCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "init",
+		Short: "Creates settings file with defaults in working directory.",
+
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if mttools.IsFileExists(app.AppSettingsFilename) {
+				return errors.New("Can not initialize existing file: " + app.AppSettingsFilename)
+			}
+
+			comment := `File was created automatically by '` + app.AppName + ` init' command. There are all
+available options listed here with its default values. Recommendation is to edit options you
+want to change and remove all others with default values to keep this as simple as possible.
+`
+
+			if err := mttools.SaveYamlSettingToFile(app.AppSettingsFilename, comment, app.AppSettings); err != nil {
+				return err
+			}
+
+			fmt.Println("Default app settings written to " + app.AppSettingsFilename)
+
+			return nil
 		},
 	}
 
