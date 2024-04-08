@@ -70,6 +70,7 @@ func (app *AppBase) internalInit() {
 	app.rootCmd.AddCommand(
 		app.buildVersionCmd(),
 		app.buildInstallCmd(),
+		app.buildUninstallCmd(),
 	)
 }
 

@@ -78,3 +78,29 @@ func (app *AppBase) buildInstallCmd() *cobra.Command {
 
 	return cmd
 }
+
+func (app *AppBase) buildUninstallCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "uninstall",
+		Short: "Remove installed system service " + app.AppName,
+
+		Run: func(cmd *cobra.Command, args []string) {
+			if mttools.IsSystemdAvailable() {
+				unitData := &mttools.ServiceData{
+					Name: app.ServiceUnitData.Name,
+				}
+
+				if err := unitData.UninstallSystemdService(); err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Fatalf(
+					"Directory %s does not exists. Only systemd based services supported for now.\n",
+					mttools.SystemdServiceDirPath,
+				)
+			}
+		},
+	}
+
+	return cmd
+}
