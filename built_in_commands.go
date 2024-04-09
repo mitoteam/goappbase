@@ -1,9 +1,16 @@
 package goappbase
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"time"
 
 	"github.com/mitoteam/mttools"
 	"github.com/spf13/cobra"
@@ -149,6 +156,73 @@ func (app *AppBase) buildInfoCmd() *cobra.Command {
 			fmt.Print("SETTINGS\n")
 			fmt.Print("================================\n")
 			app.printSettings()
+		},
+	}
+
+	return cmd
+}
+
+func (app *AppBase) buildRunCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "run",
+		Short: "Runs webserver",
+
+		RunE: func(cmd *cobra.Command, args []string) error {
+			address := app.baseSettings.WebserverHostname +
+				":" + strconv.FormatUint(uint64(app.baseSettings.WebserverPort), 10)
+
+			//Graceful shutdown according to https://github.com/gorilla/mux#graceful-shutdown
+			httpSrv := &http.Server{
+				Addr:         address,
+				WriteTimeout: time.Second * 10,
+				ReadTimeout:  time.Second * 20,
+				IdleTimeout:  time.Second * 60,
+				Handler:      web.BuildWebRouter().Handler(),
+				BaseContext:  func(l net.Listener) context.Context { return app.BaseContext },
+			}
+
+			log.Printf("Starting up web server at http://%s\nPress Ctrl + C to stop it.\n", address)
+
+			go func() {
+				if err := httpSrv.ListenAndServe(); err != nil {
+					log.Println(err)
+				}
+			}()
+
+			cancel_channel := make(chan os.Signal, 1)
+
+			// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+			// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+			signal.Notify(cancel_channel, os.Interrupt, os.Kill)
+
+			// Block execution until we receive our signal.
+			<-cancel_channel
+
+			log.Println("Shutting down web server")
+
+			// Create a deadline to wait for (10s).
+			ctx, cancel := context.WithTimeout(app.BaseContext, app.ShutdownTimeout)
+			defer cancel()
+
+			if err := httpSrv.Shutdown(ctx); err != nil {
+				log.Fatal("Server forced to shutdown:", err)
+			}
+
+			log.Println("Done")
+
+			return nil
+		},
+
+		// Do startup procedures
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			log.Printf("%s version: %s\n", app.AppName, app.Version)
+
+			return nil //no errors
+		},
+
+		// Do shutdown procedures
+		PostRunE: func(cmd *cobra.Command, args []string) error {
+			return nil //no errors
 		},
 	}
 

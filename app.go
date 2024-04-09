@@ -1,11 +1,13 @@
 package goappbase
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/mitoteam/mttools"
 	"github.com/spf13/cobra"
@@ -34,11 +36,19 @@ type AppBase struct {
 	baseSettings        *AppSettingsBase //pointer to *AppSettingsBase, set in internalInit()
 
 	rootCmd *cobra.Command
+
+	//contexts and timeout settings
+	BaseContext     context.Context
+	ShutdownTimeout time.Duration
 }
 
 func NewAppBase() *AppBase {
 	app := AppBase{}
 
+	//global application base context
+	app.BaseContext = context.Background()
+
+	//compilation data
 	app.Version = BuildVersion
 	app.Commit = BuildCommit
 	app.Time = BuildTime
@@ -48,6 +58,8 @@ func NewAppBase() *AppBase {
 	app.AppName = "UNSET_AppName"
 
 	app.AppSettingsFilename = ".settings.yml"
+
+	app.ShutdownTimeout = 10 * time.Second
 
 	app.buildRootCmd()
 
@@ -103,6 +115,7 @@ func (app *AppBase) internalInit() {
 		app.buildUninstallCmd(),
 		app.buildInitCmd(),
 		app.buildInfoCmd(),
+		app.buildRunCmd(),
 	)
 }
 
