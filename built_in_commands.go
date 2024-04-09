@@ -46,6 +46,13 @@ func (app *AppBase) buildRootCmd() {
 			return nil
 		},
 	}
+
+	app.rootCmd.PersistentFlags().StringVar(
+		&app.AppSettingsFilename,
+		"settings",
+		app.AppSettingsFilename,
+		"Filename or full path bot settings file.",
+	)
 }
 
 func (app *AppBase) buildVersionCmd() *cobra.Command {
@@ -216,8 +223,6 @@ func (app *AppBase) buildRunCmd() *cobra.Command {
 				log.Fatal("Server forced to shutdown:", err)
 			}
 
-			log.Println("Done")
-
 			return nil
 		},
 
@@ -227,12 +232,26 @@ func (app *AppBase) buildRunCmd() *cobra.Command {
 
 			app.buildWebRouter()
 
-			return nil //no errors
+			var err error
+
+			if app.PreRunF != nil {
+				err = app.PreRunF()
+			}
+
+			return err
 		},
 
 		// Do shutdown procedures
 		PostRunE: func(cmd *cobra.Command, args []string) error {
-			return nil //no errors
+			var err error
+
+			if app.PostRunF != nil {
+				err = app.PostRunF()
+			}
+
+			log.Println("Shutdown complete")
+
+			return err
 		},
 	}
 

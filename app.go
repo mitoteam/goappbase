@@ -48,6 +48,10 @@ type AppBase struct {
 	webRouter           *gin.Engine
 	WebRouterLogQueries bool                // true = extended query logging (--query-log option of `run`)
 	BuildWebRouterF     func(r *gin.Engine) // function to build web router for `run` command
+
+	//callbacks (aka event handlers)
+	PreRunF  func() error // called before starting `run` command. Stops executions inf error returned.
+	PostRunF func() error // called after starting `run` command. Stops executions inf error returned.
 }
 
 // Initializes new application.
