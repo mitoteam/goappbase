@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/mitoteam/mttools"
 	"github.com/spf13/cobra"
 )
@@ -40,6 +41,11 @@ type AppBase struct {
 	//contexts and timeout settings
 	BaseContext     context.Context
 	ShutdownTimeout time.Duration
+
+	//web router
+	webRouter           *gin.Engine
+	WebRouterLogQueries bool                // true = extended query logging (--query-log option of `run`)
+	BuildWebRouterF     func(r *gin.Engine) // function to build web router for `run` command
 }
 
 func NewAppBase() *AppBase {

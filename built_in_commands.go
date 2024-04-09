@@ -177,7 +177,7 @@ func (app *AppBase) buildRunCmd() *cobra.Command {
 				WriteTimeout: time.Second * 10,
 				ReadTimeout:  time.Second * 20,
 				IdleTimeout:  time.Second * 60,
-				Handler:      web.BuildWebRouter().Handler(),
+				Handler:      app.webRouter.Handler(),
 				BaseContext:  func(l net.Listener) context.Context { return app.BaseContext },
 			}
 
@@ -217,6 +217,8 @@ func (app *AppBase) buildRunCmd() *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			log.Printf("%s version: %s\n", app.AppName, app.Version)
 
+			app.buildWebRouter()
+
 			return nil //no errors
 		},
 
@@ -225,6 +227,14 @@ func (app *AppBase) buildRunCmd() *cobra.Command {
 			return nil //no errors
 		},
 	}
+
+	//Extended query log
+	cmd.PersistentFlags().BoolVar(
+		&app.WebRouterLogQueries,
+		"query-log",
+		false,
+		"Extended web router queries logging.",
+	)
 
 	return cmd
 }
