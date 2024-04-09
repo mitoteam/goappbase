@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strconv"
 
 	"github.com/mitoteam/mttools"
 	"github.com/spf13/cobra"
@@ -101,25 +102,31 @@ func (app *AppBase) internalInit() {
 		app.buildInstallCmd(),
 		app.buildUninstallCmd(),
 		app.buildInitCmd(),
+		app.buildInfoCmd(),
 	)
 }
 
-func (app *AppBase) loadSettings(filename string) error {
-	if mttools.IsFileExists(filename) {
-		if err := mttools.LoadYamlSettingFromFile(filename, app.AppSettings); err != nil {
+func (app *AppBase) loadSettings() error {
+	if mttools.IsFileExists(app.AppSettingsFilename) {
+		if err := mttools.LoadYamlSettingFromFile(app.AppSettingsFilename, app.AppSettings); err != nil {
 			return err
 		}
 	} else {
-		return fmt.Errorf("File not found: %s", filename)
+		return fmt.Errorf("File not found: %s", app.AppSettingsFilename)
 	}
 
-	if app.AppSettings.(*AppSettingsBase).Production {
+	if app.baseSettings.Production {
 		// require some settings in PRODUCTION
 
-		if app.AppSettings.(AppSettingsBase).BaseUrl == "" {
+		if app.baseSettings.BaseUrl == "" {
 			return errors.New("base_url required in production")
 		}
 	} else {
+		// or use pre-defined values in DEV
+		if app.baseSettings.BaseUrl == "" {
+			app.baseSettings.BaseUrl = "http://" + app.baseSettings.WebserverHostname +
+				":" + strconv.Itoa(int(app.baseSettings.WebserverPort))
+		}
 	}
 
 	return nil
@@ -127,4 +134,8 @@ func (app *AppBase) loadSettings(filename string) error {
 
 func (app *AppBase) saveSettings(comment string) error {
 	return mttools.SaveYamlSettingToFile(app.AppSettingsFilename, comment, app.AppSettings)
+}
+
+func (app *AppBase) printSettings() {
+	mttools.PrintYamlSettings(app.AppSettings)
 }

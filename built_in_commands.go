@@ -21,22 +21,22 @@ func (app *AppBase) buildRootCmd() {
 			cmd.Help()
 		},
 
-		/*PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			///Load Settings
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			//Load Settings
 			if mttools.IsFileExists(app.AppSettingsFilename) {
-				if err := app.Global.AppSettings.Load(app.AppSettingsFilename); err != nil {
+				if err := app.loadSettings(); err != nil {
 					return err
 				}
 			} else {
 				if cmd.Name() != "init" && cmd.Name() != "version" {
 					log.Fatalln(
-						"No " + app.AppSettingsFilename + " file found. Please create one or use `twsbot init` command.",
+						"No "+app.AppSettingsFilename+" file found. Please create one or use `%s init` command.", app.ExecutableName,
 					)
 				}
 			}
 
 			return nil
-		},*/
+		},
 	}
 }
 
@@ -128,6 +128,27 @@ want to change and remove all others with default values to keep this as simple 
 			fmt.Println("Default app settings written to " + app.AppSettingsFilename)
 
 			return nil
+		},
+	}
+
+	return cmd
+}
+
+func (app *AppBase) buildInfoCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "info",
+		Short: "Prints info about app, settings, status etc.",
+
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("%s\n", app.AppName)
+			fmt.Print("================================\n")
+			fmt.Printf("Version: %s\n", app.Version)
+
+			// Settings
+			fmt.Print("\n================================\n")
+			fmt.Print("SETTINGS\n")
+			fmt.Print("================================\n")
+			app.printSettings()
 		},
 	}
 
