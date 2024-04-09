@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -28,9 +29,10 @@ type AppBase struct {
 	AppName         string //Long name
 	LongDescription string //Long description
 
-	Version string //Version (auto set by compiler)
-	Commit  string //Git commit hash
-	Time    string //Build time
+	Version     string //Version (auto set by compiler)
+	BuildCommit string //Git commit hash
+	BuildTime   string //Build time
+	BuildWith   string //Build information
 
 	AppSettingsFilename string           // with .yml extension please
 	AppSettings         interface{}      //pointer to struct embedding AppSettingsBase
@@ -89,8 +91,9 @@ func NewAppBase(settings interface{}) *AppBase {
 
 	//compilation data
 	app.Version = BuildVersion
-	app.Commit = BuildCommit
-	app.Time = BuildTime
+	app.BuildCommit = BuildCommit
+	app.BuildTime = BuildTime
+	app.BuildWith = runtime.Version()
 
 	//set default values
 	app.ExecutableName = "UNSET_ExecutableName"
