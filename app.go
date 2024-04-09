@@ -142,17 +142,26 @@ func (app *AppBase) loadSettings() error {
 		return fmt.Errorf("File not found: %s", app.AppSettingsFilename)
 	}
 
+	// Settings post-processing
+
 	if app.baseSettings.Production {
 		// require some settings in PRODUCTION
-
 		if app.baseSettings.BaseUrl == "" {
 			return errors.New("base_url required in production")
+		}
+
+		if app.baseSettings.WebserverCookieSecret == "" {
+			return errors.New("webserver_cookie_secret required in production")
 		}
 	} else {
 		// or use pre-defined values in DEV
 		if app.baseSettings.BaseUrl == "" {
 			app.baseSettings.BaseUrl = "http://" + app.baseSettings.WebserverHostname +
 				":" + strconv.Itoa(int(app.baseSettings.WebserverPort))
+		}
+
+		if app.baseSettings.WebserverCookieSecret == "" {
+			app.baseSettings.WebserverCookieSecret = "DEFAULT_DEV_SECRET"
 		}
 	}
 

@@ -5,8 +5,9 @@ type AppSettingsBase struct {
 
 	BaseUrl string `yaml:"base_url" yaml_comment:"Base external site URL (with protocol and port, no trailing slash)"`
 
-	WebserverHostname string `yaml:"webserver_hostname" yaml_comment:"Webserver hostname"`
-	WebserverPort     uint16 `yaml:"webserver_port" yaml_comment:"Webserver port number"`
+	WebserverHostname     string `yaml:"webserver_hostname" yaml_comment:"Webserver hostname"`
+	WebserverPort         uint16 `yaml:"webserver_port" yaml_comment:"Webserver port number"`
+	WebserverCookieSecret string `yaml:"webserver_cookie_secret" yaml_comment:"Secret string to encrypt cookies. Required in Production mode."`
 
 	ServiceName  string `yaml:"service_name" yaml_comment:"Service name for 'install' command"`
 	ServiceUser  string `yaml:"service_user" yaml_comment:"User for 'install' command"`
