@@ -13,3 +13,25 @@ type AppSettingsBase struct {
 	ServiceGroup     string `yaml:"service_group" yaml_comment:"Group for 'install' command"`
 	ServiceAutostart bool   `yaml:"service_autostart" yaml_comment:"Set autostart while installing service"`
 }
+
+func (s *AppSettingsBase) checkDefaultValues(d *AppSettingsBase) {
+	if s.WebserverHostname == "" {
+		s.WebserverHostname = d.WebserverHostname
+	}
+
+	if s.WebserverPort == 0 {
+		s.WebserverPort = d.WebserverPort
+	}
+
+	if s.ServiceName == "" {
+		s.ServiceName = d.ServiceName
+	}
+
+	if s.ServiceUser == "" {
+		s.ServiceUser = d.ServiceUser
+	}
+
+	if s.ServiceGroup == "" {
+		s.ServiceGroup = d.ServiceGroup
+	}
+}

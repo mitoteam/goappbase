@@ -36,8 +36,8 @@ func (app *AppBase) buildRootCmd() {
 				}
 			} else {
 				if cmd.Name() != "init" && cmd.Name() != "version" {
-					log.Fatalln(
-						"No "+app.AppSettingsFilename+" file found. Please create one or use `%s init` command.", app.ExecutableName,
+					log.Fatalf(
+						"No "+app.AppSettingsFilename+" file found. Please create one or use `%s init` command.\n", app.ExecutableName,
 					)
 				}
 			}

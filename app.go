@@ -48,8 +48,35 @@ type AppBase struct {
 	BuildWebRouterF     func(r *gin.Engine) // function to build web router for `run` command
 }
 
-func NewAppBase() *AppBase {
+// Initializes new application.
+// settings - application settings default values. Pointer to struct that embeds AppSettingsBase.
+func NewAppBase(settings interface{}) *AppBase {
 	app := AppBase{}
+
+	//default settings values
+	app.AppSettingsFilename = ".settings.yml"
+	if settings == nil {
+		log.Fatalln("settings should not be empty")
+	}
+
+	base_settings_type := reflect.TypeOf((*AppSettingsBase)(nil)).Elem()
+
+	if !mttools.IsStructEmbeds(settings, base_settings_type) {
+		log.Fatalln("settings structure should embed " + base_settings_type.Name())
+	}
+
+	app.AppSettings = settings
+
+	v := reflect.ValueOf(app.AppSettings).Elem()
+	app.baseSettings = v.FieldByName(base_settings_type.Name()).Addr().Interface().(*AppSettingsBase)
+
+	app.baseSettings.checkDefaultValues(&AppSettingsBase{
+		WebserverHostname: "localhost",
+		WebserverPort:     15115,
+		ServiceName:       app.ExecutableName,
+		ServiceUser:       "www-data",
+		ServiceGroup:      "www-data",
+	})
 
 	//global application base context
 	app.BaseContext = context.Background()
@@ -62,8 +89,6 @@ func NewAppBase() *AppBase {
 	//set default values
 	app.ExecutableName = "UNSET_ExecutableName"
 	app.AppName = "UNSET_AppName"
-
-	app.AppSettingsFilename = ".settings.yml"
 
 	app.ShutdownTimeout = 10 * time.Second
 
@@ -82,29 +107,6 @@ func (app *AppBase) Run() {
 }
 
 func (app *AppBase) internalInit() {
-	//default settings object should be set
-	if app.AppSettings == nil {
-		log.Fatalln("AppSettings should not be empty")
-	}
-
-	base_settings_type := reflect.TypeOf((*AppSettingsBase)(nil)).Elem()
-
-	if !mttools.IsStructEmbeds(app.AppSettings, base_settings_type) {
-		log.Fatalln("AppSettings should embed " + base_settings_type.Name())
-	}
-
-	v := reflect.ValueOf(app.AppSettings).Elem()
-	app.baseSettings = v.FieldByName(base_settings_type.Name()).Addr().Interface().(*AppSettingsBase)
-
-	//default basic settings values
-	app.baseSettings.Production = false
-	app.baseSettings.WebserverHostname = "localhost"
-	app.baseSettings.WebserverPort = 15115
-	app.baseSettings.ServiceName = app.ExecutableName
-	app.baseSettings.ServiceUser = "www-data"
-	app.baseSettings.ServiceGroup = "www-data"
-	app.baseSettings.ServiceAutostart = true
-
 	//setup root cmd
 	app.rootCmd.Use = app.ExecutableName
 	app.rootCmd.Long = app.AppName
