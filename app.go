@@ -113,7 +113,7 @@ func (app *AppBase) loadSettings(filename string) error {
 		return fmt.Errorf("File not found: %s", filename)
 	}
 
-	if app.AppSettings.(AppSettingsBase).Production {
+	if app.AppSettings.(*AppSettingsBase).Production {
 		// require some settings in PRODUCTION
 
 		if app.AppSettings.(AppSettingsBase).BaseUrl == "" {
@@ -123,4 +123,8 @@ func (app *AppBase) loadSettings(filename string) error {
 	}
 
 	return nil
+}
+
+func (app *AppBase) saveSettings(comment string) error {
+	return mttools.SaveYamlSettingToFile(app.AppSettingsFilename, comment, app.AppSettings)
 }

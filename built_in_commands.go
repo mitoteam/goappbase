@@ -121,7 +121,7 @@ available options listed here with its default values. Recommendation is to edit
 want to change and remove all others with default values to keep this as simple as possible.
 `
 
-			if err := mttools.SaveYamlSettingToFile(app.AppSettingsFilename, comment, app.AppSettings); err != nil {
+			if err := app.saveSettings(comment); err != nil {
 				return err
 			}
 
