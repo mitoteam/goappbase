@@ -36,6 +36,8 @@ type AppBase struct {
 	AppSettings         interface{}      //pointer to struct embedding AppSettingsBase
 	baseSettings        *AppSettingsBase //pointer to *AppSettingsBase, set in internalInit()
 
+	serviceAutostart bool
+
 	rootCmd *cobra.Command
 
 	//contexts and timeout settings

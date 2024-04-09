@@ -70,7 +70,7 @@ func (app *AppBase) buildInstallCmd() *cobra.Command {
 					Name:      app.baseSettings.ServiceName,
 					User:      app.baseSettings.ServiceUser,
 					Group:     app.baseSettings.ServiceGroup,
-					Autostart: app.baseSettings.ServiceAutostart,
+					Autostart: app.serviceAutostart,
 				}
 
 				if err := unitData.InstallSystemdService(); err != nil {
@@ -84,6 +84,13 @@ func (app *AppBase) buildInstallCmd() *cobra.Command {
 			}
 		},
 	}
+
+	cmd.PersistentFlags().BoolVar(
+		&app.serviceAutostart,
+		"autostart",
+		true,
+		"Set service to be auto started after boot. Please note: this option does not auto starts service after installation.",
+	)
 
 	return cmd
 }
