@@ -35,6 +35,7 @@ func (app *AppBase) buildRootCmd() {
 					return err
 				}
 			} else {
+				//do not require settings loading just for certain commands
 				if cmd.Name() != "init" && cmd.Name() != "version" {
 					log.Fatalf(
 						"No "+app.AppSettingsFilename+" file found. Please create one or use `%s init` command.\n", app.ExecutableName,
