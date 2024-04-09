@@ -58,7 +58,14 @@ func (app *AppBase) buildInstallCmd() *cobra.Command {
 
 		Run: func(cmd *cobra.Command, args []string) {
 			if mttools.IsSystemdAvailable() {
-				if err := app.ServiceUnitData.InstallSystemdService(); err != nil {
+				unitData := &mttools.ServiceData{
+					Name:      app.baseSettings.ServiceName,
+					User:      app.baseSettings.ServiceUser,
+					Group:     app.baseSettings.ServiceGroup,
+					Autostart: app.baseSettings.ServiceAutostart,
+				}
+
+				if err := unitData.InstallSystemdService(); err != nil {
 					log.Fatal(err)
 				}
 			} else {
@@ -69,13 +76,6 @@ func (app *AppBase) buildInstallCmd() *cobra.Command {
 			}
 		},
 	}
-
-	cmd.PersistentFlags().BoolVar(
-		&app.ServiceUnitData.Autostart,
-		"autostart",
-		false,
-		"Set service to be auto started after boot. Please note this does not auto starts service after installation.",
-	)
 
 	return cmd
 }
@@ -88,7 +88,7 @@ func (app *AppBase) buildUninstallCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if mttools.IsSystemdAvailable() {
 				unitData := &mttools.ServiceData{
-					Name: app.ServiceUnitData.Name,
+					Name: app.baseSettings.ServiceName,
 				}
 
 				if err := unitData.UninstallSystemdService(); err != nil {

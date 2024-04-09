@@ -8,7 +8,8 @@ type AppSettingsBase struct {
 	WebserverHostname string `yaml:"webserver_hostname" yaml_comment:"Webserver hostname"`
 	WebserverPort     uint16 `yaml:"webserver_port" yaml_comment:"Webserver port number"`
 
-	ServiceName  string `yaml:"service_name" yaml_comment:"Service name for 'install' command"`
-	ServiceUser  string `yaml:"service_user" yaml_comment:"User for 'install' command"`
-	ServiceGroup string `yaml:"service_group" yaml_comment:"Group for 'install' command"`
+	ServiceName      string `yaml:"service_name" yaml_comment:"Service name for 'install' command"`
+	ServiceUser      string `yaml:"service_user" yaml_comment:"User for 'install' command"`
+	ServiceGroup     string `yaml:"service_group" yaml_comment:"Group for 'install' command"`
+	ServiceAutostart bool   `yaml:"service_autostart" yaml_comment:"Set autostart while installing service"`
 }

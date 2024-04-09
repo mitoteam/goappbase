@@ -28,10 +28,9 @@ type AppBase struct {
 	Commit  string //Git commit hash
 	Time    string //Build time
 
-	AppSettingsFilename string // with .yml extension please
-	AppSettings         interface{}
-
-	ServiceUnitData *mttools.ServiceData
+	AppSettingsFilename string           // with .yml extension please
+	AppSettings         interface{}      //pointer to struct embedding AppSettingsBase
+	baseSettings        *AppSettingsBase //pointer to *AppSettingsBase, set in internalInit()
 
 	rootCmd *cobra.Command
 }
@@ -48,10 +47,6 @@ func NewAppBase() *AppBase {
 	app.AppName = "UNSET_AppName"
 
 	app.AppSettingsFilename = ".settings.yml"
-
-	app.ServiceUnitData = &mttools.ServiceData{
-		Name: "service_name_not_set",
-	}
 
 	app.buildRootCmd()
 
@@ -79,16 +74,17 @@ func (app *AppBase) internalInit() {
 		log.Fatalln("AppSettings should embed " + base_settings_type.Name())
 	}
 
-	//default basic settings values
 	v := reflect.ValueOf(app.AppSettings).Elem()
-	base_settings := v.FieldByName(base_settings_type.Name()).Addr().Interface().(*AppSettingsBase)
+	app.baseSettings = v.FieldByName(base_settings_type.Name()).Addr().Interface().(*AppSettingsBase)
 
-	base_settings.Production = false
-	base_settings.WebserverHostname = "localhost"
-	base_settings.WebserverPort = 15115
-	base_settings.ServiceName = app.ExecutableName
-	base_settings.ServiceUser = "www-data"
-	base_settings.ServiceGroup = "www-data"
+	//default basic settings values
+	app.baseSettings.Production = false
+	app.baseSettings.WebserverHostname = "localhost"
+	app.baseSettings.WebserverPort = 15115
+	app.baseSettings.ServiceName = app.ExecutableName
+	app.baseSettings.ServiceUser = "www-data"
+	app.baseSettings.ServiceGroup = "www-data"
+	app.baseSettings.ServiceAutostart = true
 
 	//setup root cmd
 	app.rootCmd.Use = app.ExecutableName
