@@ -14,7 +14,7 @@ endif
 DIST_DIR := dist
 
 ifeq (${OS},Windows_NT)
-	BUILD_TIME := $(shell date)
+	BUILD_TIME := $(shell powershell "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'")
 else
 	BUILD_TIME := $(shell date +"%Y-%m-%d %H:%M:%S")
 endif
@@ -26,6 +26,7 @@ LD_FLAGS := "-X 'github.com/mitoteam/goappbase.BuildVersion=${APP_VERSION}' -X '
 fn_GO_BUILD = GOOS=$(1) GOARCH=$(2) go build -o ${DIST_DIR}/$(3) -ldflags=${LD_FLAGS} main.go ;\
 7z a ${DIST_DIR}/${EXECUTABLE_NAME}-${APP_VERSION}-$(4).7z -mx9 ./${DIST_DIR}/$(3)
 
+HZ := $(shell date)
 
 .PHONY: build-all
 build-all: build-linux64 build-linux32 build-windows64

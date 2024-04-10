@@ -158,6 +158,8 @@ func (app *AppBase) buildInfoCmd() *cobra.Command {
 			fmt.Printf("%s\n", app.AppName)
 			fmt.Print("================================\n")
 			fmt.Printf("Version: %s\n", app.Version)
+			fmt.Printf("Commit: %s\n", app.BuildCommit)
+			fmt.Printf("Built: at %s with %s\n", app.BuildTime, app.BuildWith)
 
 			// Settings
 			fmt.Print("\n================================\n")
