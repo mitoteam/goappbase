@@ -46,13 +46,6 @@ func (app *AppBase) buildRootCmd() {
 			return nil
 		},
 	}
-
-	app.rootCmd.PersistentFlags().StringVar(
-		&app.AppSettingsFilename,
-		"settings",
-		app.AppSettingsFilename,
-		"Filename or full path bot settings file.",
-	)
 }
 
 func (app *AppBase) buildVersionCmd() *cobra.Command {

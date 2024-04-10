@@ -140,6 +140,13 @@ func (app *AppBase) internalInit() {
 
 	}
 
+	app.rootCmd.PersistentFlags().StringVar(
+		&app.AppSettingsFilename,
+		"settings",
+		app.AppSettingsFilename,
+		"Filename or full path bot settings file.",
+	)
+
 	//check app options
 	if app.WebApiPathPrefix != "" {
 		// no trailing slashes
