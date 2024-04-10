@@ -12,6 +12,12 @@ Disable commit hash tracking for submodule in `.gitmodules` :
     ignore = all # ignore hash changes
 ```
 
+Add `use ./goappbase` to main project `go.work`
+
+Do `go mod tidy`
+
+## Useful commands
+
 Pull main project with submodules:
 
 ```
