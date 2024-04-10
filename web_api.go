@@ -30,6 +30,10 @@ func newApiRequest(c *gin.Context) (*ApiRequest, error) {
 
 	//prepare session
 	r.session = sessions.Default(c)
+	r.session.Options(sessions.Options{
+		MaxAge: 24 * 3600,
+		Path:   "/",
+	})
 
 	//prepare input data
 	body, err := io.ReadAll(io.LimitReader(c.Request.Body, 1048576))
@@ -99,4 +103,27 @@ func (r *ApiRequest) SetOkStatus(message string) {
 
 func (r *ApiRequest) SetErrorStatus(message string) {
 	r.setStatus("error", message)
+}
+
+func (r *ApiRequest) Session() sessions.Session {
+	return r.session
+}
+
+func (r *ApiRequest) SessionClear() {
+	r.session.Clear()
+
+	r.session.Options(sessions.Options{
+		MaxAge: -1, //remove immediately
+		Path:   "/",
+	})
+
+	r.session.Save()
+}
+
+func (r *ApiRequest) SessionGet(key string) any {
+	return r.session.Get(key)
+}
+
+func (r *ApiRequest) SessionSet(key string, value any) {
+	r.session.Set(key, value)
 }
