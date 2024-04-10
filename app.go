@@ -34,6 +34,8 @@ type AppBase struct {
 	BuildTime   string //Build time
 	BuildWith   string //Build information
 
+	Global map[string]interface{} //some global application state values
+
 	AppSettingsFilename string           // with .yml extension please
 	AppSettings         interface{}      //pointer to struct embedding AppSettingsBase
 	baseSettings        *AppSettingsBase //pointer to *AppSettingsBase, set in internalInit()
@@ -60,6 +62,9 @@ type AppBase struct {
 // settings - application settings default values. Pointer to struct that embeds AppSettingsBase.
 func NewAppBase(settings interface{}) *AppBase {
 	app := AppBase{}
+
+	//global app state values
+	app.Global = make(map[string]interface{})
 
 	//default settings values
 	app.AppSettingsFilename = ".settings.yml"
@@ -153,9 +158,10 @@ func (app *AppBase) loadSettings() error {
 			return errors.New("base_url required in production")
 		}
 
-		if app.baseSettings.WebserverCookieSecret == "" {
-			return errors.New("webserver_cookie_secret required in production")
+		if len(app.baseSettings.WebserverCookieSecret) < 32 {
+			return errors.New("webserver_cookie_secret required in production and should be at least 32 characters long")
 		}
+
 	} else {
 		// or use pre-defined values in DEV
 		if app.baseSettings.BaseUrl == "" {
