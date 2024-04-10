@@ -30,10 +30,11 @@ type AppBase struct {
 	AppName         string //Long name
 	LongDescription string //Long description
 
-	Version     string //Version (auto set by compiler)
-	BuildCommit string //Git commit hash
-	BuildTime   string //Build time
-	BuildWith   string //Build information
+	Version         string //Version (auto set by compiler)
+	BuildCommitFull string //Git full commit hash
+	BuildCommit     string //Git short commit hash
+	BuildTime       string //Build time
+	BuildWith       string //Build information
 
 	Global map[string]interface{} //some global application state values
 
@@ -105,7 +106,8 @@ func NewAppBase(settings interface{}) *AppBase {
 
 	//compilation data
 	app.Version = BuildVersion
-	app.BuildCommit = BuildCommit
+	app.BuildCommitFull = BuildCommit
+	app.BuildCommit = app.BuildCommitFull[0:min(7, len(app.BuildCommitFull))]
 	app.BuildTime = BuildTime
 	app.BuildWith = runtime.Version()
 
