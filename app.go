@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -53,6 +54,11 @@ type AppBase struct {
 	WebRouterLogQueries bool                // true = extended query logging (--query-log option of `run`)
 	BuildWebRouterF     func(r *gin.Engine) // function to build web router for `run` command
 
+	//web api
+	WebApiPathPrefix  string // usually "/api". Leave empty to disable web API at all.
+	WebApiEnableGet   bool   // Serve both POST and GET methods. Default 'false' = POST-requests only.
+	webApiHandlerList map[string]ApiRequestHandler
+
 	//callbacks (aka event handlers)
 	PreRunF  func() error // called before starting `run` command. Stops executions inf error returned.
 	PostRunF func() error // called after starting `run` command. Stops executions inf error returned.
@@ -65,6 +71,9 @@ func NewAppBase(settings interface{}) *AppBase {
 
 	//global app state values
 	app.Global = make(map[string]interface{})
+
+	//web api routes list
+	app.webApiHandlerList = make(map[string]ApiRequestHandler)
 
 	//default settings values
 	app.AppSettingsFilename = ".settings.yml"
@@ -106,6 +115,7 @@ func NewAppBase(settings interface{}) *AppBase {
 
 	app.ShutdownTimeout = 10 * time.Second
 
+	//build root cobra cmd
 	app.buildRootCmd()
 
 	return &app
@@ -121,13 +131,24 @@ func (app *AppBase) Run() {
 }
 
 func (app *AppBase) internalInit() {
-	//setup root cmd
+	//post-setup root cmd
 	app.rootCmd.Use = app.ExecutableName
 	app.rootCmd.Long = app.AppName
 
 	if app.LongDescription != "" {
 		app.rootCmd.Long += " - " + app.LongDescription
 
+	}
+
+	//check app options
+	if app.WebApiPathPrefix != "" {
+		// no trailing slashes
+		app.WebApiPathPrefix = strings.TrimSuffix(app.WebApiPathPrefix, "/")
+
+		//should start from slash
+		if !strings.HasPrefix(app.WebApiPathPrefix, "/") {
+			app.WebApiPathPrefix += "/"
+		}
 	}
 
 	//add built-in commands
@@ -183,4 +204,10 @@ func (app *AppBase) saveSettings(comment string) error {
 
 func (app *AppBase) printSettings() {
 	mttools.PrintYamlSettings(app.AppSettings)
+}
+
+func (app *AppBase) ApiHandler(path string, handler ApiRequestHandler) *AppBase {
+	app.webApiHandlerList[path] = handler
+
+	return app //for method chaining
 }
