@@ -61,8 +61,11 @@ type AppBase struct {
 	webApiHandlerList map[string]ApiRequestHandler
 
 	//callbacks (aka event handlers)
+	PreCmdF  func(cmd *cobra.Command) error // called before any subcommand. Stops executions if error returned.
+	PostCmdF func(cmd *cobra.Command) error // called after any subcommand. Stops executions if error returned.
+
 	PreRunF    func() error // called before starting `run` command. Stops executions if error returned.
-	PostRunF   func() error // called after starting `run` command. Stops executions if error returned.
+	PostRunF   func() error // called after finishing `run` command. Stops executions if error returned.
 	InitF      func() error // Additional code for `init` subcommand. Stops executions if error returned.
 	PrintInfoF func()       // Prints additional information when `info` subcommand called.
 }

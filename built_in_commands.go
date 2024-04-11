@@ -18,7 +18,7 @@ import (
 
 func (app *AppBase) buildRootCmd() {
 	app.rootCmd = &cobra.Command{
-		Version: BuildVersion,
+		Version: app.Version,
 
 		//disable default 'completion' subcommand
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
@@ -40,6 +40,22 @@ func (app *AppBase) buildRootCmd() {
 					log.Fatalf(
 						"No "+app.AppSettingsFilename+" file found. Please create one or use `%s init` command.\n", app.ExecutableName,
 					)
+				}
+			}
+
+			if app.PreCmdF != nil {
+				if err := app.PreCmdF(cmd); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		},
+
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			if app.PostCmdF != nil {
+				if err := app.PostCmdF(cmd); err != nil {
+					return err
 				}
 			}
 
