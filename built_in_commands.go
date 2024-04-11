@@ -142,6 +142,12 @@ want to change and remove all others with default values to keep this as simple 
 
 			fmt.Println("Default app settings written to " + app.AppSettingsFilename)
 
+			if app.InitF != nil {
+				if err := app.InitF(); err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
