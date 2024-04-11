@@ -68,6 +68,8 @@ type AppBase struct {
 	PostRunF   func() error // called after finishing `run` command. Stops executions if error returned.
 	InitF      func() error // Additional code for `init` subcommand. Stops executions if error returned.
 	PrintInfoF func()       // Prints additional information when `info` subcommand called.
+
+	BuildCustomCommandsF func(rootCmd *cobra.Command) // Set this to add any custom subcommands
 }
 
 // Initializes new application.
@@ -174,6 +176,10 @@ func (app *AppBase) internalInit() {
 		app.buildInfoCmd(),
 		app.buildRunCmd(),
 	)
+
+	if app.BuildCustomCommandsF != nil {
+		app.BuildCustomCommandsF(app.rootCmd)
+	}
 }
 
 func (app *AppBase) loadSettings() error {
