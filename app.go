@@ -61,8 +61,9 @@ type AppBase struct {
 	webApiHandlerList map[string]ApiRequestHandler
 
 	//callbacks (aka event handlers)
-	PreRunF  func() error // called before starting `run` command. Stops executions inf error returned.
-	PostRunF func() error // called after starting `run` command. Stops executions inf error returned.
+	PreRunF    func() error // called before starting `run` command. Stops executions if error returned.
+	PostRunF   func() error // called after starting `run` command. Stops executions if error returned.
+	PrintInfoF func()       // Prints additional information when `info` subcommand called.returned.
 }
 
 // Initializes new application.

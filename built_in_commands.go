@@ -166,6 +166,10 @@ func (app *AppBase) buildInfoCmd() *cobra.Command {
 			fmt.Print("SETTINGS\n")
 			fmt.Print("================================\n")
 			app.printSettings()
+
+			if app.PrintInfoF != nil {
+				app.PrintInfoF()
+			}
 		},
 	}
 
