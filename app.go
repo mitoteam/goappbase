@@ -220,3 +220,7 @@ func (app *AppBase) ApiHandler(path string, handler ApiRequestHandler) *AppBase 
 
 	return app //for method chaining
 }
+
+func (app *AppBase) IsDevMode() bool {
+	return app.Version == DEV_MODE_LABEL // && false //uncomment to debug production mode
+}
