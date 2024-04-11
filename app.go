@@ -199,8 +199,13 @@ func (app *AppBase) loadSettings() error {
 			return errors.New("base_url required in production")
 		}
 
-		if len(app.baseSettings.WebserverCookieSecret) < 32 {
-			return errors.New("webserver_cookie_secret required in production and should be at least 32 characters long")
+		if app.baseSettings.WebserverCookieSecret == "" {
+			return errors.New("webserver_cookie_secret required in production")
+		} else if len(app.baseSettings.WebserverCookieSecret) < 32 {
+			return fmt.Errorf(
+				"webserver_cookie_secret should be at least 32 characters long in production. You have %d.",
+				len(app.baseSettings.WebserverCookieSecret),
+			)
 		}
 
 	} else {
