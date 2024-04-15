@@ -63,5 +63,7 @@ func (schema *DbSchemaType) Close() {
 		sqlDB.Close()
 	}
 
+	log.Printf("Database %s closed\n", dbFileName)
+
 	schema.db = nil
 }
