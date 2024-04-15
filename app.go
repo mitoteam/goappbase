@@ -101,11 +101,12 @@ func NewAppBase(settings interface{}) *AppBase {
 	app.baseSettings = v.FieldByName(base_settings_type.Name()).Addr().Interface().(*AppSettingsBase)
 
 	app.baseSettings.checkDefaultValues(&AppSettingsBase{
-		WebserverHostname: "localhost",
-		WebserverPort:     15115,
-		ServiceName:       app.ExecutableName,
-		ServiceUser:       "www-data",
-		ServiceGroup:      "www-data",
+		WebserverHostname:   "localhost",
+		WebserverPort:       15115,
+		ServiceName:         app.ExecutableName,
+		ServiceUser:         "www-data",
+		ServiceGroup:        "www-data",
+		InitialRootPassword: mttools.RandomString(20),
 	})
 
 	//global application base context

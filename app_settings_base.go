@@ -12,26 +12,32 @@ type AppSettingsBase struct {
 	ServiceName  string `yaml:"service_name" yaml_comment:"Service name for 'install' command"`
 	ServiceUser  string `yaml:"service_user" yaml_comment:"User for 'install' command"`
 	ServiceGroup string `yaml:"service_group" yaml_comment:"Group for 'install' command"`
+
+	InitialRootPassword string `yaml:"initial_root_password" yaml_comment:"Password to authenticate root user before users database ready. !!!DELETE THIS when you set root password in GUI."`
 }
 
-func (s *AppSettingsBase) checkDefaultValues(d *AppSettingsBase) {
+func (s *AppSettingsBase) checkDefaultValues(defaults *AppSettingsBase) {
 	if s.WebserverHostname == "" {
-		s.WebserverHostname = d.WebserverHostname
+		s.WebserverHostname = defaults.WebserverHostname
 	}
 
 	if s.WebserverPort == 0 {
-		s.WebserverPort = d.WebserverPort
+		s.WebserverPort = defaults.WebserverPort
 	}
 
 	if s.ServiceName == "" {
-		s.ServiceName = d.ServiceName
+		s.ServiceName = defaults.ServiceName
 	}
 
 	if s.ServiceUser == "" {
-		s.ServiceUser = d.ServiceUser
+		s.ServiceUser = defaults.ServiceUser
 	}
 
 	if s.ServiceGroup == "" {
-		s.ServiceGroup = d.ServiceGroup
+		s.ServiceGroup = defaults.ServiceGroup
+	}
+
+	if s.InitialRootPassword == "" {
+		s.InitialRootPassword = defaults.InitialRootPassword
 	}
 }
