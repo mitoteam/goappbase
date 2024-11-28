@@ -1,14 +1,14 @@
 module github.com/mitoteam/goappbase
 
-go 1.22
+go 1.23
 
 require (
-	github.com/gin-contrib/sessions v1.0.0
-	github.com/gin-gonic/gin v1.9.1
+	github.com/gin-contrib/sessions v1.0.1
+	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/mitoteam/mttools v0.0.0-20240403084847-81ae7e0a4074
 	github.com/spf13/cobra v1.8.0
-	gorm.io/gorm v1.25.8
+	gorm.io/gorm v1.25.12
 )
 
 require (
