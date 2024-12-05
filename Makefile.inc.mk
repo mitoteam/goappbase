@@ -48,9 +48,10 @@ build-linux32: clean tests ${DIST_DIR}
 build-linux64: clean tests ${DIST_DIR}
 	$(call fn_GO_BUILD,linux,amd64,${EXECUTABLE_NAME},linux64)
 
+# Run all tests in root module and in known submodules
 .PHONY: tests
 tests::
-# all tests in root module and in known submodules
+	clear
 	go test ./... $(SUBMODULES)
 
 
