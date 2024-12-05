@@ -1,19 +1,32 @@
-# EXAMPLE:
+# ------ USAGE EXAMPLE -------
 # EXECUTABLE_NAME := exec_name
-# include goappbase/Makefile.inc.mk
+# SUBMODULES := ./internal/dhtml
+#
+# include internal/goappbase/Makefile.inc.mk
+# ----------------------------
 
 
-# Expected variables
+# SET DEFAULT VALUES
 ifeq ($(EXECUTABLE_NAME),)
-EXECUTABLE_NAME := executable_name_not_set #default value if not set
+EXECUTABLE_NAME := executable_name_not_set
 endif
 
-SUBMODULES := $(SUBMODULES) ./mttools ./goappbase
+# directory to create distribution archives
+ifeq ($(DIST_DIR),)
+DIST_DIR := dist
+endif
+
+# internal submodules base path
+ifeq (${INTERNAL_SUBMODULES_PATH},)
+INTERNAL_SUBMODULES_PATH := ./internal
+endif
+
+# submodules to run tests for
+SUBMODULES := ${SUBMODULES} ${INTERNAL_SUBMODULES_PATH}/mttools ${INTERNAL_SUBMODULES_PATH}/goappbase
 
 #set default target
 .DEFAULT_GOAL := build-all
 
-DIST_DIR := dist
 
 ifeq (${OS},Windows_NT)
 	BUILD_TIME := $(shell powershell "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'")
@@ -28,13 +41,16 @@ LD_FLAGS := "-X 'github.com/mitoteam/goappbase.BuildVersion=${APP_VERSION}' -X '
 fn_GO_BUILD = GOOS=$(1) GOARCH=$(2) go build -o ${DIST_DIR}/$(3) -ldflags=${LD_FLAGS} main.go ;\
 7z a ${DIST_DIR}/${EXECUTABLE_NAME}-${APP_VERSION}-$(4).7z -mx9 ./${DIST_DIR}/$(3)
 
-HZ := $(shell date)
 
 .PHONY: build-all
-build-all: build-linux64 build-linux32 build-windows64
+build-all:: build-linux64 build-linux32 build-windows32 build-windows64
 	rm -f ${DIST_DIR}/${EXECUTABLE_NAME}
 	rm -f ${DIST_DIR}/${EXECUTABLE_NAME}.exe
 
+
+.PHONY: build-windows32
+build-windows32: clean tests ${DIST_DIR}
+	$(call fn_GO_BUILD,windows,386,${EXECUTABLE_NAME}.exe,win64)
 
 .PHONY: build-windows64
 build-windows64: clean tests ${DIST_DIR}
@@ -47,6 +63,7 @@ build-linux32: clean tests ${DIST_DIR}
 .PHONY: build-linux64
 build-linux64: clean tests ${DIST_DIR}
 	$(call fn_GO_BUILD,linux,amd64,${EXECUTABLE_NAME},linux64)
+
 
 # Run all tests in root module and in known submodules
 .PHONY: tests
