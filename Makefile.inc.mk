@@ -5,8 +5,10 @@
 
 # Expected variables
 ifeq ($(EXECUTABLE_NAME),)
-EXECUTABLE_NAME := executable_name_not_set
+EXECUTABLE_NAME := executable_name_not_set #default value if not set
 endif
+
+SUBMODULES := $(SUBMODULES) ./mttools ./goappbase
 
 #set default target
 .DEFAULT_GOAL := build-all
@@ -48,11 +50,8 @@ build-linux64: clean tests ${DIST_DIR}
 
 .PHONY: tests
 tests::
-# all tests in root module
-	go test ./...
-# tests in known submodules
-	go test ./mttools
-	go test ./goappbase
+# all tests in root module and in known submodules
+	go test ./... $(SUBMODULES)
 
 
 ${DIST_DIR}:
