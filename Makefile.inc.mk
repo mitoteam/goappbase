@@ -47,7 +47,7 @@ build-linux64: clean tests ${DIST_DIR}
 	$(call fn_GO_BUILD,linux,amd64,${EXECUTABLE_NAME},linux64)
 
 .PHONY: tests
-tests:
+tests::
 # all tests in root module
 	go test ./...
 # tests in known submodules
