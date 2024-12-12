@@ -2,6 +2,7 @@ package goappbase
 
 import (
 	"log"
+	"reflect"
 
 	"github.com/glebarez/sqlite"
 	gorm "gorm.io/gorm"
@@ -10,28 +11,38 @@ import (
 
 const dbFileName = "data.db"
 
-type DbSchemaType struct {
-	schema []interface{}
-	db     *gorm.DB
+type dbSchemaType struct {
+	modelMap map[string]any // name = typename, value = empty struct of this type
+	db       *gorm.DB
 }
 
-var DbSchema *DbSchemaType
+var DbSchema *dbSchemaType
 
 func init() {
-	DbSchema = &DbSchemaType{}
+	DbSchema = &dbSchemaType{}
 
-	DbSchema.schema = make([]interface{}, 0)
+	DbSchema.modelMap = make(map[string]any, 0)
 }
 
-func (schema *DbSchemaType) AddModel(model interface{}) {
-	schema.schema = append(schema.schema, model)
+func (schema *dbSchemaType) AddModel(modelType reflect.Type) {
+	//ensure it is a struct
+	if modelType.Kind() != reflect.Struct {
+		log.Panicf("modelType %s is not a struct", modelType.Name())
+	}
+
+	schema.modelMap[modelType.String()] = reflect.New(modelType).Elem().Interface()
 }
 
-func (schema *DbSchemaType) GetDb() *gorm.DB {
+func (schema *dbSchemaType) HasModel(modelType reflect.Type) bool {
+	_, exists := schema.modelMap[modelType.String()]
+	return exists
+}
+
+func (schema *dbSchemaType) Db() *gorm.DB {
 	return schema.db
 }
 
-func (db_schema *DbSchemaType) Open() (*gorm.DB, error) {
+func (db_schema *dbSchemaType) Open() (*gorm.DB, error) {
 	var err error
 
 	db_schema.db, err = gorm.Open(sqlite.Open(dbFileName), &gorm.Config{
@@ -47,16 +58,17 @@ func (db_schema *DbSchemaType) Open() (*gorm.DB, error) {
 	log.Printf("Database %s opened\n", dbFileName)
 
 	// Migrate the schema
-	for i := 0; i < len(db_schema.schema); i++ {
-		db_schema.db.AutoMigrate(db_schema.schema[i])
+	//log.Printf("DBG: %+v\n", db_schema.modelMap)
+	for _, modelObject := range db_schema.modelMap {
+		db_schema.db.AutoMigrate(modelObject)
 	}
 
-	log.Println("Database migration done")
+	log.Printf("Database migration done (schema model count: %d)\n", len(db_schema.modelMap))
 
 	return db_schema.db, nil
 }
 
-func (schema *DbSchemaType) Close() {
+func (schema *dbSchemaType) Close() {
 	sqlDB, err := schema.db.DB()
 
 	if err != nil {
