@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "appulate.filewatcher",
+    "bierner.markdown-preview-github-styles",
+    "DavidAnson.vscode-markdownlint",
+    "donjayamanne.githistory",
+    "EditorConfig.EditorConfig",
+    "ExodiusStudios.comment-anchors",
+    "golang.go",
+    "mdickin.markdown-shortcuts",
+    "ms-vscode.makefile-tools",
+    "streetsidesoftware.code-spell-checker-russian",
+    "zeithaste.cursorcharcode",
+  ]
+}
