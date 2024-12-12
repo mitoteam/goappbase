@@ -19,36 +19,59 @@ type BaseModel struct {
 }
 
 func LoadObject[ModelT any](id any) (r *ModelT) {
-	if DbSchema.Db() == nil {
-		//database is not opened
-		return nil
-	}
-
 	typedId, ok := mttools.AnyToInt64Ok(id)
 
-	if !ok && typedId == 0 {
-		//id is empty
+	if !ok || typedId == 0 { //id is empty
 		return nil
 	}
 
 	var modelObject ModelT
-	t := reflect.TypeOf(modelObject)
 
-	if !DbSchema.HasModel(t) {
-		log.Printf("LoadObject ERROR: unknown model '%s'\n", t.Name())
+	if !checkSchemaModel(reflect.TypeOf(modelObject)) {
 		return nil
 	}
 
 	if err := DbSchema.Db().First(&modelObject, typedId).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		} else {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Println("Query ERROR: " + err.Error())
-			return nil
 		}
+
+		return nil
 	}
 
 	return &modelObject
+}
+
+func LoadObjectList[ModelT any]() (list []*ModelT) {
+	var modelObject ModelT
+
+	if !checkSchemaModel(reflect.TypeOf(modelObject)) {
+		return []*ModelT{} //empty list
+	}
+
+	if err := DbSchema.Db().Model(&modelObject).Find(&list).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("Query ERROR: " + err.Error())
+		}
+
+		return []*ModelT{} //empty list
+	}
+
+	return list
+}
+
+func checkSchemaModel(t reflect.Type) bool {
+	if DbSchema.Db() == nil {
+		//database is not opened
+		return false
+	}
+
+	if !DbSchema.HasModel(t) {
+		log.Printf("ERROR[checkSchemaModel]: unknown model '%s'\n", t.String())
+		return false
+	}
+
+	return true
 }
 
 // func UniqueSlice[S ~[]E, E any](slice S) S {
