@@ -42,6 +42,38 @@ func LoadObject[ModelT any](id any) (r *ModelT) {
 	return &modelObject
 }
 
+// Deletes object. Returns false if something goes wrong.
+func DeleteObject(modelObject any) bool {
+	//check if it is a model object pointer and unpack it
+	t := reflect.TypeOf(modelObject)
+	v := reflect.ValueOf(modelObject)
+
+	if t.Kind() == reflect.Pointer {
+		v = v.Elem()
+		t = t.Elem()
+		modelObject = v.Interface()
+	}
+
+	if !checkSchemaModel(t) {
+		return false
+	}
+
+	//make sure there is saved object (with ID set)
+	if v.FieldByName(reflect.TypeFor[BaseModel]().Name()).FieldByName("ID").Int() == 0 {
+		return false
+	}
+
+	if err := DbSchema.Db().Delete(modelObject).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("Query ERROR: " + err.Error())
+		}
+
+		return false
+	}
+
+	return true
+}
+
 func LoadObjectList[ModelT any]() (list []*ModelT) {
 	var modelObject ModelT
 

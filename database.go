@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/glebarez/sqlite"
+	"github.com/mitoteam/mttools"
 	gorm "gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
@@ -27,7 +28,12 @@ func init() {
 func (schema *dbSchemaType) AddModel(modelType reflect.Type) {
 	//ensure it is a struct
 	if modelType.Kind() != reflect.Struct {
-		log.Panicf("modelType %s is not a struct", modelType.Name())
+		log.Panicf("modelType %s is not a struct", modelType.String())
+	}
+
+	//ensure it embeds BaseModel
+	if !mttools.IsStructTypeEmbeds(modelType, reflect.TypeFor[BaseModel]()) {
+		log.Panicf("modelType %s does not embed BaseModel", modelType.String())
 	}
 
 	schema.modelMap[modelType.String()] = reflect.New(modelType).Elem().Interface()
