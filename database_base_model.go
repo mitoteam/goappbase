@@ -42,6 +42,20 @@ func LoadObject[ModelT any](id any) (r *ModelT) {
 	return &modelObject
 }
 
+func LoadOrCreateObject[ModelT any](id any) (r *ModelT) {
+	typedId, ok := mttools.AnyToInt64Ok(id)
+
+	if !ok {
+		return nil // id type is unknown
+	}
+
+	if typedId == 0 {
+		return new(ModelT)
+	} else {
+		return LoadObject[ModelT](typedId)
+	}
+}
+
 // Deletes object. Returns false if something goes wrong.
 func DeleteObject(modelObject any) bool {
 	var t reflect.Type
