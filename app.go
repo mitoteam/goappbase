@@ -74,7 +74,7 @@ type AppBase struct {
 
 // Initializes new application.
 // settings - application settings default values. Pointer to struct that embeds AppSettingsBase.
-func NewAppBase(settings interface{}) *AppBase {
+func NewAppBase(defaultSettings interface{}) *AppBase {
 	app := AppBase{}
 
 	//global app state values
@@ -85,17 +85,17 @@ func NewAppBase(settings interface{}) *AppBase {
 
 	//default settings values
 	app.AppSettingsFilename = ".settings.yml"
-	if settings == nil {
-		log.Fatalln("settings should not be empty")
+	if defaultSettings == nil {
+		log.Fatalln("defaultSettings should not be empty")
 	}
 
-	base_settings_type := reflect.TypeOf((*AppSettingsBase)(nil)).Elem()
+	base_settings_type := reflect.TypeFor[AppSettingsBase]()
 
-	if !mttools.IsStructEmbeds(settings, base_settings_type) {
+	if !mttools.IsStructEmbeds(defaultSettings, base_settings_type) {
 		log.Fatalln("settings structure should embed " + base_settings_type.Name())
 	}
 
-	app.AppSettings = settings
+	app.AppSettings = defaultSettings
 
 	v := reflect.ValueOf(app.AppSettings).Elem()
 	app.baseSettings = v.FieldByName(base_settings_type.Name()).Addr().Interface().(*AppSettingsBase)
