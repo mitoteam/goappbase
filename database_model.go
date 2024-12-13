@@ -18,12 +18,12 @@ type BaseModel struct {
 	UpdatedAt time.Time
 }
 
-// gorm TX object. Prepared in ModelQuery(), used in LoadObject, LoadOL, CountOL
+// gorm TX object. Prepared in PreQuery(), used in LoadObject, LoadOL, CountOL
 var gormTx *gorm.DB
 
 // Prepares gorm TX for loading model (O)bjects (L)ist.
 // Returned TX can be used to apply conditions and other gorm query clauses.
-func ModelQuery[ModelT any]() (tx *gorm.DB) {
+func PreQuery[ModelT any]() (tx *gorm.DB) {
 	var modelObject ModelT
 
 	if !checkSchemaModelType(reflect.TypeOf(modelObject)) {
@@ -45,7 +45,7 @@ func LoadO[ModelT any](id any) (r *ModelT) {
 	}
 
 	if gormTx == nil { // gormTx is not prepared
-		if gormTx = ModelQuery[ModelT](); gormTx == nil { //unable to prepare
+		if gormTx = PreQuery[ModelT](); gormTx == nil { //unable to prepare
 			return nil
 		}
 	}
@@ -87,6 +87,30 @@ func LoadOrCreateO[ModelT any](id any) (r *ModelT) {
 	} else {
 		return LoadO[ModelT](typedId)
 	}
+}
+
+// Loads first available model object. Conditions can be set in PreQuery().
+// Returns nil if object was not loaded.
+func FirstO[ModelT any]() (r *ModelT) {
+	defer func() { gormTx = nil }()
+
+	if gormTx == nil { // gormTx is not prepared
+		if gormTx = PreQuery[ModelT](); gormTx == nil { //unable to prepare
+			return nil
+		}
+	}
+
+	var modelObject ModelT
+
+	if err := gormTx.First(&modelObject).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("Query ERROR: " + err.Error())
+		}
+
+		return nil
+	}
+
+	return &modelObject
 }
 
 // Deletes object. Returns false if something goes wrong.
@@ -136,14 +160,14 @@ func SaveObject(modelObject any) bool {
 	return true
 }
 
-// Loads model (O)bjects (L)ist using prepared gorm TX - ModelQuery().
+// Loads model (O)bjects (L)ist using prepared gorm TX - PreQuery().
 // if gorm TX was not prepared, empty one is created (selecting all model objects)
 func LoadOL[ModelT any]() (list []*ModelT) {
 	list = []*ModelT{} //empty list by default
 	defer func() { gormTx = nil }()
 
 	if gormTx == nil {
-		if gormTx = ModelQuery[ModelT](); gormTx == nil {
+		if gormTx = PreQuery[ModelT](); gormTx == nil {
 			return
 		}
 	}
@@ -157,14 +181,14 @@ func LoadOL[ModelT any]() (list []*ModelT) {
 	return list
 }
 
-// Counts records for model (O)bjects using prepared gorm TX - ModelQuery().
+// Counts records for model (O)bjects using prepared gorm TX - PreQuery().
 // if gorm TX was not prepared, empty one is created (counting all model objects)
 func CountOL[ModelT any]() (cnt int64) {
 	cnt = 0
 	defer func() { gormTx = nil }()
 
 	if gormTx == nil {
-		if gormTx = ModelQuery[ModelT](); gormTx == nil {
+		if gormTx = PreQuery[ModelT](); gormTx == nil {
 			return
 		}
 	}
