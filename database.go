@@ -48,7 +48,7 @@ func (schema *dbSchemaType) Db() *gorm.DB {
 	return schema.db
 }
 
-func (db_schema *dbSchemaType) Open() (*gorm.DB, error) {
+func (db_schema *dbSchemaType) Open() error {
 	var err error
 
 	db_schema.db, err = gorm.Open(sqlite.Open(dbFileName), &gorm.Config{
@@ -58,7 +58,7 @@ func (db_schema *dbSchemaType) Open() (*gorm.DB, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	log.Printf("Database %s opened\n", dbFileName)
@@ -71,7 +71,7 @@ func (db_schema *dbSchemaType) Open() (*gorm.DB, error) {
 
 	log.Printf("Database migration done (schema model count: %d)\n", len(db_schema.modelMap))
 
-	return db_schema.db, nil
+	return nil
 }
 
 func (schema *dbSchemaType) Close() {
