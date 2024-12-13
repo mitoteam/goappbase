@@ -27,7 +27,7 @@ func LoadObject[ModelT any](id any) (r *ModelT) {
 
 	var modelObject ModelT
 
-	if !checkSchemaModel(reflect.TypeOf(modelObject)) {
+	if !checkSchemaModelType(reflect.TypeOf(modelObject)) {
 		return nil
 	}
 
@@ -44,21 +44,15 @@ func LoadObject[ModelT any](id any) (r *ModelT) {
 
 // Deletes object. Returns false if something goes wrong.
 func DeleteObject(modelObject any) bool {
-	//check if it is a model object pointer and unpack it
-	t := reflect.TypeOf(modelObject)
-	v := reflect.ValueOf(modelObject)
+	var t reflect.Type
 
-	if t.Kind() == reflect.Pointer {
-		v = v.Elem()
-		t = t.Elem()
-		modelObject = v.Interface()
-	}
-
-	if !checkSchemaModel(t) {
+	if t, modelObject = modelObjectReflection(modelObject); t == nil {
+		// not a schema model object
 		return false
 	}
 
-	//make sure there is saved object (with ID set)
+	//make sure it is saved object (with ID set)
+	v := reflect.ValueOf(modelObject).Elem() // struct itself from pointer
 	if v.FieldByName(reflect.TypeFor[BaseModel]().Name()).FieldByName("ID").Int() == 0 {
 		return false
 	}
@@ -74,10 +68,31 @@ func DeleteObject(modelObject any) bool {
 	return true
 }
 
+// Saves object. Returns false if something goes wrong.
+func SaveObject(modelObject any) bool {
+	var t reflect.Type
+
+	if t, modelObject = modelObjectReflection(modelObject); t == nil {
+		// not a schema model object
+		return false
+	}
+
+	//if err := DbSchema.Db().Save(v.Interface()).Error; err != nil {
+	if err := DbSchema.Db().Save(modelObject).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("Query ERROR: " + err.Error())
+		}
+
+		return false
+	}
+
+	return true
+}
+
 func LoadObjectList[ModelT any]() (list []*ModelT) {
 	var modelObject ModelT
 
-	if !checkSchemaModel(reflect.TypeOf(modelObject)) {
+	if !checkSchemaModelType(reflect.TypeOf(modelObject)) {
 		return []*ModelT{} //empty list
 	}
 
@@ -92,18 +107,36 @@ func LoadObjectList[ModelT any]() (list []*ModelT) {
 	return list
 }
 
-func checkSchemaModel(t reflect.Type) bool {
+// Checks if t is type of registered model struct
+func checkSchemaModelType(t reflect.Type) bool {
 	if DbSchema.Db() == nil {
 		//database is not opened
 		return false
 	}
 
 	if !DbSchema.HasModel(t) {
-		log.Printf("ERROR[checkSchemaModel]: unknown model '%s'\n", t.String())
+		log.Printf("ERROR[checkSchemaModelType]: unknown model '%s'\n", t.String())
 		return false
 	}
 
 	return true
 }
 
-// func UniqueSlice[S ~[]E, E any](slice S) S {
+// returns t  = Type of model structure, o = pointer to model object
+func modelObjectReflection(modelObject any) (t reflect.Type, o any) {
+	t = reflect.TypeOf(modelObject)
+
+	//check if it is a model object pointer and dereference it's type
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()    // t is pointer, dereference it's type to struct
+		o = modelObject // already a pointer
+	} else if t.Kind() == reflect.Struct {
+		o = reflect.ValueOf(modelObject).Addr().Interface() // modelObject is struct, return pointer to it
+	}
+
+	if !checkSchemaModelType(t) {
+		return nil, nil
+	}
+
+	return t, o
+}
