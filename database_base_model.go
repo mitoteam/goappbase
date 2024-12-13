@@ -18,20 +18,41 @@ type BaseModel struct {
 	UpdatedAt time.Time
 }
 
-func LoadObject[ModelT any](id any) (r *ModelT) {
-	typedId, ok := mttools.AnyToInt64Ok(id)
+// gorm TX object. Prepared in ModelQuery(), used in LoadObject, LoadOL, CountOL
+var gormTx *gorm.DB
 
-	if !ok || typedId == 0 { //id is empty
-		return nil
-	}
-
+// Prepares gorm TX for loading model (O)bjects (L)ist.
+// Returned TX can be used to apply conditions and other gorm query clauses.
+func ModelQuery[ModelT any]() (tx *gorm.DB) {
 	var modelObject ModelT
 
 	if !checkSchemaModelType(reflect.TypeOf(modelObject)) {
 		return nil
 	}
 
-	if err := DbSchema.Db().First(&modelObject, typedId).Error; err != nil {
+	gormTx = DbSchema.Db().Model(&modelObject)
+	return gormTx
+}
+
+// Loads model object by ID. Returns nil if object was not loaded.
+func LoadO[ModelT any](id any) (r *ModelT) {
+	defer func() { gormTx = nil }()
+
+	typedId, ok := mttools.AnyToInt64Ok(id)
+
+	if !ok || typedId == 0 { //id is empty
+		return nil
+	}
+
+	if gormTx == nil { // gormTx is not prepared
+		if gormTx = ModelQuery[ModelT](); gormTx == nil { //unable to prepare
+			return nil
+		}
+	}
+
+	var modelObject ModelT
+
+	if err := gormTx.First(&modelObject, typedId).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Println("Query ERROR: " + err.Error())
 		}
@@ -42,7 +63,19 @@ func LoadObject[ModelT any](id any) (r *ModelT) {
 	return &modelObject
 }
 
-func LoadOrCreateObject[ModelT any](id any) (r *ModelT) {
+// Works like LoadO() but panics if object was not found.
+func LoadOMust[ModelT any](id any) (r *ModelT) {
+	r = LoadO[ModelT](id)
+
+	if r == nil {
+		log.Panicf("Can not load model object %s[ID=%v]", reflect.TypeFor[ModelT]().String(), id)
+	}
+
+	return r
+}
+
+// If id == 0 creates new empty object. Loads model object by ID otherwise.
+func LoadOrCreateO[ModelT any](id any) (r *ModelT) {
 	typedId, ok := mttools.AnyToInt64Ok(id)
 
 	if !ok {
@@ -52,7 +85,7 @@ func LoadOrCreateObject[ModelT any](id any) (r *ModelT) {
 	if typedId == 0 {
 		return new(ModelT)
 	} else {
-		return LoadObject[ModelT](typedId)
+		return LoadO[ModelT](typedId)
 	}
 }
 
@@ -103,22 +136,46 @@ func SaveObject(modelObject any) bool {
 	return true
 }
 
-func LoadObjectList[ModelT any]() (list []*ModelT) {
-	var modelObject ModelT
+// Loads model (O)bjects (L)ist using prepared gorm TX - ModelQuery().
+// if gorm TX was not prepared, empty one is created (selecting all model objects)
+func LoadOL[ModelT any]() (list []*ModelT) {
+	list = []*ModelT{} //empty list by default
+	defer func() { gormTx = nil }()
 
-	if !checkSchemaModelType(reflect.TypeOf(modelObject)) {
-		return []*ModelT{} //empty list
+	if gormTx == nil {
+		if gormTx = ModelQuery[ModelT](); gormTx == nil {
+			return
+		}
 	}
 
-	if err := DbSchema.Db().Model(&modelObject).Find(&list).Error; err != nil {
+	if err := gormTx.Find(&list).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Println("Query ERROR: " + err.Error())
 		}
-
-		return []*ModelT{} //empty list
 	}
 
 	return list
+}
+
+// Counts records for model (O)bjects using prepared gorm TX - ModelQuery().
+// if gorm TX was not prepared, empty one is created (counting all model objects)
+func CountOL[ModelT any]() (cnt int64) {
+	cnt = 0
+	defer func() { gormTx = nil }()
+
+	if gormTx == nil {
+		if gormTx = ModelQuery[ModelT](); gormTx == nil {
+			return
+		}
+	}
+
+	if err := gormTx.Count(&cnt).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("Query ERROR: " + err.Error())
+		}
+	}
+
+	return cnt
 }
 
 // Checks if t is type of registered model struct
