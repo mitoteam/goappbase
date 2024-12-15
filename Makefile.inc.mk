@@ -43,7 +43,8 @@ endif
 
 APP_VERSION := $(file < VERSION)
 APP_COMMIT := $(shell git rev-list -1 HEAD)
-LD_FLAGS := "-X 'github.com/mitoteam/goappbase.BuildVersion=${APP_VERSION}' -X 'github.com/mitoteam/goappbase.BuildCommit=${APP_COMMIT}' -X 'github.com/mitoteam/goappbase.BuildTime=${BUILD_TIME}'"
+# see https://stackoverflow.com/a/22276273/380123 for -w -s
+LD_FLAGS := "-w -s -X 'github.com/mitoteam/goappbase.BuildVersion=${APP_VERSION}' -X 'github.com/mitoteam/goappbase.BuildCommit=${APP_COMMIT}' -X 'github.com/mitoteam/goappbase.BuildTime=${BUILD_TIME}'"
 
 
 .PHONY: build-all
