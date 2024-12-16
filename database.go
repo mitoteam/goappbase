@@ -22,7 +22,7 @@ var DbSchema *dbSchemaType
 func init() {
 	DbSchema = &dbSchemaType{}
 
-	DbSchema.modelMap = make(map[string]any, 0)
+	DbSchema.modelMap = make(map[string]any, 0) //typeName => modelObject
 }
 
 func (schema *dbSchemaType) AddModel(modelType reflect.Type) {
@@ -36,6 +36,7 @@ func (schema *dbSchemaType) AddModel(modelType reflect.Type) {
 		log.Panicf("modelType %s does not embed BaseModel", modelType.String())
 	}
 
+	//crate empty model object
 	schema.modelMap[modelType.String()] = reflect.New(modelType).Elem().Interface()
 }
 
@@ -52,6 +53,7 @@ func (db_schema *dbSchemaType) Open() error {
 	var err error
 
 	db_schema.db, err = gorm.Open(sqlite.Open(dbFileName), &gorm.Config{
+		//Logger: logger.Default.LogMode(logger.Warn),
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true, // use singular table name, table for `User` would be `user` with this option enabled
 		},
@@ -65,8 +67,11 @@ func (db_schema *dbSchemaType) Open() error {
 
 	// Migrate the schema
 	//log.Printf("DBG: %+v\n", db_schema.modelMap)
-	for _, modelObject := range db_schema.modelMap {
-		db_schema.db.AutoMigrate(modelObject)
+	for name, modelObject := range db_schema.modelMap {
+		//log.Printf("DBG: %s %+v\n", name, modelObject)
+		if err := db_schema.db.AutoMigrate(modelObject); err != nil {
+			log.Printf("ERROR migrating %s: %s", name, err.Error())
+		}
 	}
 
 	log.Printf("Database migration done (schema model count: %d)\n", len(db_schema.modelMap))
