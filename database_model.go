@@ -114,29 +114,29 @@ func FirstO[ModelT any]() (r *ModelT) {
 }
 
 // Deletes object. Returns false if something goes wrong.
-func DeleteObject(modelObject any) bool {
+func DeleteObject(modelObject any) error {
 	var t reflect.Type
 
 	if t, modelObject = modelObjectReflection(modelObject); t == nil {
-		// not a schema model object
-		return false
+		return errors.New("modelObject is not valid schema object")
 	}
 
 	//make sure it is saved object (with ID set)
 	v := reflect.ValueOf(modelObject).Elem() // struct itself from pointer
 	if v.FieldByName(reflect.TypeFor[BaseModel]().Name()).FieldByName("ID").Int() == 0 {
-		return false
+		return errors.New("modelObject has ID=0")
 	}
 
 	if err := DbSchema.Db().Delete(modelObject).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		} else {
 			log.Println("Query ERROR: " + err.Error())
+			return err
 		}
-
-		return false
 	}
 
-	return true
+	return nil
 }
 
 // Saves object. Returns false if something goes wrong.
