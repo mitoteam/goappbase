@@ -29,7 +29,7 @@ INTERNAL_SUBMODULES_PATH := ./internal
 endif
 
 # submodules to run tests for
-SUBMODULES := ${SUBMODULES} ${INTERNAL_SUBMODULES_PATH}/mttools ${INTERNAL_SUBMODULES_PATH}/goappbase
+SUBMODULES := ${INTERNAL_SUBMODULES_PATH}/goappbase ${SUBMODULES}
 
 #set default target
 .DEFAULT_GOAL := build-all
