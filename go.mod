@@ -1,4 +1,4 @@
-module github.com/mitoteam/goappbase
+module github.com/mitoteam/goapp
 
 go 1.23
 

@@ -1,4 +1,4 @@
-package goappbase
+package goapp
 
 import (
 	"errors"

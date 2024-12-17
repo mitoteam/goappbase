@@ -3,7 +3,7 @@
 # SUBMODULES := ./internal/dhtml
 # ARCH_FILES := ./VERSION ./LICENSE.md # files to add to archives
 #
-# include internal/goappbase/Makefile.inc.mk
+# include internal/goapp/Makefile.inc.mk
 # ----------------------------
 
 
@@ -29,7 +29,7 @@ INTERNAL_SUBMODULES_PATH := ./internal
 endif
 
 # submodules to run tests for
-SUBMODULES := ${INTERNAL_SUBMODULES_PATH}/goappbase ${SUBMODULES}
+SUBMODULES := ${INTERNAL_SUBMODULES_PATH}/goapp ${SUBMODULES}
 
 #set default target
 .DEFAULT_GOAL := build-all
@@ -44,7 +44,7 @@ endif
 APP_VERSION := $(file < VERSION)
 APP_COMMIT := $(shell git rev-list -1 HEAD)
 # see https://stackoverflow.com/a/22276273/380123 for -w -s
-LD_FLAGS := "-w -s -X 'github.com/mitoteam/goappbase.BuildVersion=${APP_VERSION}' -X 'github.com/mitoteam/goappbase.BuildCommit=${APP_COMMIT}' -X 'github.com/mitoteam/goappbase.BuildTime=${BUILD_TIME}'"
+LD_FLAGS := "-w -s -X 'github.com/mitoteam/goapp.BuildVersion=${APP_VERSION}' -X 'github.com/mitoteam/goapp.BuildCommit=${APP_COMMIT}' -X 'github.com/mitoteam/goapp.BuildTime=${BUILD_TIME}'"
 
 
 .PHONY: build-all

@@ -1,18 +1,18 @@
-# goappbase
+# goapp - MiTo Team's Golang projects application base
 Go projects application base
 
 ## Add as git submodule
 ```
-git submodule add -b main https://github.com/mitoteam/goappbase.git
+git submodule add -b main https://github.com/mitoteam/goapp.git internal/goapp
 ```
 
 Disable commit hash tracking for submodule in `.gitmodules` :
 ```
-[submodule "goappbase"]
+[submodule "goapp"]
     ignore = all # ignore hash changes
 ```
 
-Add `use ./goappbase` to main project `go.work`
+Add `use ./internal/goapp` to main project `go.work`
 
 Do `go mod tidy`
 

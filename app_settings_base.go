@@ -1,4 +1,4 @@
-package goappbase
+package goapp
 
 type AppSettingsBase struct {
 	Production bool `yaml:"production" yaml_comment:"Production mode"`
