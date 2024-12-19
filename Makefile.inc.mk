@@ -117,3 +117,8 @@ version:
 .PHONY: clean
 clean:
 	rm -rf ${DIST_DIR}
+
+.PHONY: deps
+deps:
+	go get -u -t ./...
+	go mod tidy
