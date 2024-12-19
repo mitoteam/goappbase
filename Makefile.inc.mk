@@ -104,6 +104,9 @@ tests::
 	clear
 	go test ./... $(SUBMODULES)
 
+# target alias: test = tests
+.PHONY: test
+test: tests
 
 ${DIST_DIR}:
 	mkdir ${DIST_DIR}
